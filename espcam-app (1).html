@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Câmera ao vivo</title>
+<style>
+:root{--or:#ff6a00;--or2:#ff8a2b;--or-d:#e85d00;--bg:#f5f5f6;--card:#fff;--tx:#1c1c1e;--mut:#8a8a8f;--ok:#1fa35b;--err:#e5383b;--line:#ececee}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:"Poppins","Segoe UI",system-ui,sans-serif;background:#d9d9dc;color:var(--tx);display:flex;justify-content:center}
+.app{width:100%;max-width:430px;min-height:100%;background:var(--bg);position:relative;padding-bottom:96px;overflow:hidden}
+.hero{background:linear-gradient(160deg,var(--or2),var(--or));padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 92px;color:#fff;border-radius:0 0 28px 28px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.top p{font-size:13px;opacity:.9}.top h1{font-size:20px;font-weight:700}
+.bell{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);border:0;color:#fff;display:grid;place-items:center}
+.live{margin:-70px 16px 0;background:var(--or-d);border-radius:20px;overflow:hidden;color:#fff;box-shadow:0 10px 24px rgba(232,93,0,.35);position:relative}
+.live-h{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px}
+.live-h small{font-size:12px;opacity:.9}
+.status{display:flex;align-items:center;gap:8px;font-size:26px;font-weight:700;padding:0 16px 12px}
+.dot{width:10px;height:10px;border-radius:50%;background:#ffd2b0}
+.on .dot{background:#6dff9f;box-shadow:0 0 0 0 rgba(109,255,159,.7);animation:p 1.6s infinite}
+@keyframes p{70%{box-shadow:0 0 0 9px rgba(109,255,159,0)}100%{box-shadow:0 0 0 0 rgba(109,255,159,0)}}
+.video{position:relative;aspect-ratio:4/3;background:#2a1a10;display:grid;place-items:center}
+.video img{width:100%;height:100%;object-fit:cover;display:none}
+.on .video img{display:block}
+.ph{text-align:center;padding:20px;font-size:13px;opacity:.85}
+.ph svg{margin-bottom:8px;opacity:.7}
+.on .ph{display:none}
+.badge{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:99px;font-size:11px;display:none;gap:6px;align-items:center}
+.on .badge{display:flex}.badge i{width:7px;height:7px;border-radius:50%;background:#ff3b30}
+.fs{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.55);border:0;color:#fff;width:34px;height:34px;border-radius:10px;display:none;place-items:center}
+.on .fs{display:grid}
+.meta{display:flex;justify-content:space-between;padding:12px 16px;font-size:13px}
+.meta b{font-weight:600}.meta span{opacity:.85}
+.sec{padding:22px 20px 0}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.sec-h h2{font-size:15px;font-weight:700}.sec-h a{font-size:11px;color:var(--mut)}
+.ctl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:7px;font:inherit;font-size:12px;font-weight:500;color:var(--tx);cursor:pointer;transition:transform .12s,background .12s}
+.btn:active{transform:scale(.96)}
+.btn svg{color:var(--or)}
+.btn.act{background:#fff1e6;border-color:var(--or)}
+.list{background:var(--card);border-radius:18px;padding:4px 14px}
+.row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+.row:last-child{border:0}
+.row .t{flex:1}.row .t b{display:block;font-weight:600}.row .t small{color:var(--mut);font-size:11px}
+.ok{color:var(--ok);font-weight:600}.er{color:var(--err);font-weight:600}
+.ico{width:34px;height:34px;border-radius:10px;background:#fff1e6;color:var(--or);display:grid;place-items:center}
+.shots{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.shots img,.empty{flex:0 0 74px;height:74px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.empty{display:grid;place-items:center;background:#fff;color:var(--mut);font-size:11px;text-align:center;border-radius:18px;flex:1;height:74px;padding:0 12px}
+nav{position:fixed;bottom:0;width:100%;max-width:430px;background:#fff;height:74px;padding-bottom:env(safe-area-inset-bottom,0px);display:flex;justify-content:space-around;align-items:center;border-radius:22px 22px 0 0;box-shadow:0 -6px 20px rgba(0,0,0,.06)}
+nav button{background:0;border:0;color:#9a9a9f;padding:10px}
+nav button.cur{color:var(--or)}
+nav .fab{width:56px;height:56px;border-radius:50%;background:var(--or);color:#fff;margin-top:-34px;box-shadow:0 8px 18px rgba(255,106,0,.45);display:grid;place-items:center}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:flex-end;justify-content:center;z-index:9}
+.sheet.open{display:flex}
+.sheet form,.sheet .box{background:#fff;width:100%;max-width:430px;border-radius:24px 24px 0 0;padding:22px 20px calc(env(safe-area-inset-bottom,0px) + 24px);animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.sheet h3{font-size:17px;margin-bottom:4px}.sheet p{font-size:12px;color:var(--mut);margin-bottom:14px}
+label{font-size:12px;font-weight:600;display:block;margin:10px 0 5px}
+input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:14px}
+input:focus,.btn:focus-visible,button:focus-visible{outline:2px solid var(--or);outline-offset:2px}
+.save{width:100%;margin-top:18px;background:var(--or);color:#fff;border:0;border-radius:14px;padding:14px;font:inherit;font-weight:600}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);background:#1c1c1e;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:10}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="hero">
+    <div class="top">
+      <div><p id="greet">Olá,</p><h1>Thaís!</h1></div>
+      <button class="bell" aria-label="Configurações" onclick="openSheet('cfg')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="live" id="live">
+    <div class="live-h"><small>Câmera ao vivo</small><small id="ipLabel">192.168.4.1</small></div>
+    <div class="status"><span class="dot"></span><span id="stText">Desconectada</span></div>
+    <div class="video" id="video">
+      <img id="stream" alt="Transmissão da câmera">
+      <div class="ph" id="ph">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        <div id="phMsg">Toque em Conectar para ver a câmera</div>
+      </div>
+      <div class="badge"><i></i>Ao vivo</div>
+      <button class="fs" aria-label="Tela cheia" onclick="goFull()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+    </div>
+    <div class="meta"><span>Resolução <b id="res">--</b></span><span>Tempo <b id="up">00:00</b></span></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h2>Controles</h2></div>
+    <div class="ctl">
+      <button class="btn" id="bConn" onclick="toggle()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 20h.01"/></svg><span id="bConnT">Conectar</span></button>
+      <button class="btn" onclick="snap()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Capturar</button>
+      <button class="btn" id="bFlash" onclick="flash()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg>Flash</button>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h2>Atividade</h2></div>
+    <div class="list" id="log"><div class="row"><div class="t"><small>Nenhum evento ainda</small></div></div></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h2>Fotos salvas</h2><a>Nesta sessão</a></div>
+    <div class="shots" id="shots"><div class="empty">Suas capturas aparecem aqui</div></div>
+  </section>
+
+  <nav>
+    <button class="cur" aria-label="Início"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3 11l9-8 9 8v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z"/></svg></button>
+    <button aria-label="Estatísticas" onclick="toast('Em breve')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
+    <button class="fab" aria-label="Capturar foto" onclick="snap()"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button aria-label="Fotos" onclick="document.getElementById('shots').scrollIntoView({behavior:'smooth'})"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18"/></svg></button>
+    <button aria-label="Perfil" onclick="openSheet('cfg')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></button>
+  </nav>
+</div>
+
+<div class="sheet" id="cfg" onclick="if(event.target===this)closeSheet('cfg')">
+  <form onsubmit="saveCfg(event)">
+    <h3>Conexão da câmera</h3>
+    <p>Conecte o celular ao Wi-Fi da ESP32-CAM antes de continuar.</p>
+    <label for="ip">Endereço IP</label><input id="ip" value="192.168.4.1" inputmode="decimal">
+    <label for="port">Porta do vídeo</label><input id="port" value="81" inputmode="numeric">
+    <label for="path">Caminho do stream</label><input id="path" value="/stream">
+    <button class="save">Salvar e conectar</button>
+  </form>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let cfg={ip:'192.168.4.1',port:'81',path:'/stream'};
+try{Object.assign(cfg,JSON.parse(localStorage.getItem('espcfg')||'{}'))}catch(e){}
+let connected=false,timer=null,t0=0,flashOn=false,shots=0;
+const base=()=>'http://'+cfg.ip;
+const streamUrl=()=>'http://'+cfg.ip+(cfg.port&&cfg.port!=='80'?':'+cfg.port:'')+cfg.path;
+
+const h=new Date().getHours();
+$('greet').textContent=(h<12?'Bom dia':h<18?'Boa tarde':'Boa noite')+',';
+$('ip').value=cfg.ip;$('port').value=cfg.port;$('path').value=cfg.path;$('ipLabel').textContent=cfg.ip;
+
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+function openSheet(i){$(i).classList.add('open')}function closeSheet(i){$(i).classList.remove('open')}
+function log(msg,cls,sub){
+  const l=$('log');if(l.firstElementChild&&!l.firstElementChild.querySelector('b'))l.innerHTML='';
+  const d=document.createElement('div');d.className='row';
+  d.innerHTML='<div class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div><div class="t"><b>'+msg+'</b><small>'+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</small></div><span class="'+cls+'">'+sub+'</span>';
+  l.prepend(d);while(l.children.length>4)l.lastChild.remove();
+}
+function setState(on,msg){
+  connected=on;$('live').classList.toggle('on',on);
+  $('stText').textContent=on?'Conectada':'Desconectada';
+  $('bConnT').textContent=on?'Desconectar':'Conectar';
+  $('bConn').classList.toggle('act',on);
+  if(msg)$('phMsg').textContent=msg;
+  clearInterval(timer);
+  if(on){t0=Date.now();timer=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);$('up').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},1000)}
+  else $('up').textContent='00:00';
+}
+let poll=null;
+function connect(){
+  const img=$('stream');clearInterval(poll);$('phMsg').textContent='Conectando…';
+  let tries=0;
+  const ok=()=>{clearInterval(poll);if(!connected){setState(true);$('res').textContent=img.naturalWidth+'×'+img.naturalHeight;log('Câmera conectada','ok','Ao vivo')}};
+  const fail=m=>{clearInterval(poll);const was=connected;img.removeAttribute('src');setState(false,m);log(was?'Conexão perdida':'Falha ao conectar','er','Erro')};
+  img.onload=ok;
+  img.onerror=()=>fail('Sem sinal em '+cfg.ip+'. Confira o Wi-Fi da câmera e o caminho do stream.');
+  img.src=streamUrl()+(streamUrl().includes('?')?'&':'?')+'t='+Date.now();
+  poll=setInterval(()=>{
+    if(img.naturalWidth>0)return ok();
+    if(++tries>40)fail('A câmera não respondeu. Feche outras abas da câmera e tente de novo.');
+  },300);
+}
+function disconnect(){clearInterval(poll);$('stream').removeAttribute('src');setState(false,'Toque em Conectar para ver a câmera');log('Câmera desconectada','er','Parada')}
+function toggle(){connected?disconnect():connect()}
+function saveCfg(e){
+  e.preventDefault();
+  cfg={ip:$('ip').value.trim(),port:$('port').value.trim(),path:$('path').value.trim()||'/stream'};
+  try{localStorage.setItem('espcfg',JSON.stringify(cfg))}catch(x){}
+  $('ipLabel').textContent=cfg.ip;closeSheet('cfg');connect();
+}
+async function snap(){
+  if(!connected)return toast('Conecte a câmera primeiro');
+  try{
+    const r=await fetch(base()+'/capture?t='+Date.now());
+    const b=await r.blob();const u=URL.createObjectURL(b);
+    const s=$('shots');if(s.querySelector('.empty'))s.innerHTML='';
+    const im=document.createElement('img');im.src=u;im.alt='Foto capturada';
+    im.onclick=()=>{const a=document.createElement('a');a.href=u;a.download='captura-'+(++shots)+'.jpg';a.click()};
+    s.prepend(im);toast('Foto salva. Toque nela para baixar');
+  }catch(e){window.open(base()+'/capture','_blank');toast('Abrindo a foto em nova aba')}
+}
+async function flash(){
+  if(!connected)return toast('Conecte a câmera primeiro');
+  flashOn=!flashOn;$('bFlash').classList.toggle('act',flashOn);
+  try{await fetch(base()+'/control?var=flash&val='+(flashOn?255:0),{mode:'no-cors'})}catch(e){}
+}
+function goFull(){const v=$('video');(v.requestFullscreen||v.webkitRequestFullscreen||function(){}).call(v)}
+</script>
+</body>
+</html>
